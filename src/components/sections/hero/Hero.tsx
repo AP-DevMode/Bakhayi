@@ -44,7 +44,7 @@ export default function Hero() {
           </span>
         </div>
 
-        <p className="font-display uppercase text-hero-mega">{HERO.mega}</p>
+        <p className="font-display text-hero-mega uppercase opacity-100">{HERO.mega}</p>
       </div>
     </section>
   );
