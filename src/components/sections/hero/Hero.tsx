@@ -37,7 +37,7 @@ export default function Hero() {
 
       <div className="relative z-10 flex flex-col items-center gap-1 px-6 text-center text-paper">
         <div className="flex flex-wrap items-baseline justify-center gap-x-2">
-          <span className="font-display uppercase text-hero-eyebrow tracking-wide text-lg">
+          <span className="font-display uppercase text-hero-eyebrow tracking-wide text-3xl">
             {HERO.eyebrow}
           </span>
           <span className="font-display uppercase text-hero-display leading-[0.88]">
@@ -49,7 +49,7 @@ export default function Hero() {
           <span className="font-display uppercase text-hero-display leading-[0.95]">
             {HERO.displayLine2}
           </span>
-          <span className="font-display italic text-hero-eyebrow uppercase">
+          <span className="font-display italic text-hero-eyebrow uppercase text-3xl">
             {HERO.accent}
           </span>
         </div>
