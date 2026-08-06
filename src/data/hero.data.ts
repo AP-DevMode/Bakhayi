@@ -15,3 +15,4 @@ export const HERO = {
     height: 1080,
   },
 } as const;
+  

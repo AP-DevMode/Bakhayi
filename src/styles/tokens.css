@@ -20,18 +20,21 @@
   --color-paper: #ffffff;
 
   /* ── Typography ─────────────────────────────────────────────────────
-     Display font is "DaVinci for Balbin" in the Figma file — a custom/
-     licensed font we don't have files for. Standing in with Fraunces
-     (Google, has a matching italic, similar editorial-serif register)
-     until real font files are supplied. Swap --font-display below and
-     nothing downstream needs to change. */
-  --font-display: var(--font-display-placeholder), "Fraunces", ui-serif, Georgia, serif;
+     Display: "DaVinci for Balbin" (Regular + Italic), licensed, loaded
+     locally via next/font/local in layout.tsx as --font-display-raw.
+     Body/UI: "PP Neue Montreal" (Book/Italic/Medium), same setup as
+     --font-body-raw. Swap the font files in layout.tsx and nothing
+     downstream needs to change. */
+  --font-display: var(--font-display-raw), ui-serif, Georgia, serif;
+  --font-body: var(--font-body-raw), ui-sans-serif, system-ui, sans-serif;
 
   /* Headline scale — reused wherever the site needs the same "voice":
-     eyebrow/accent, display line, and mega line. Sizes are fluid
-     (clamp) between an assumed mobile floor and the exact Figma desktop
-     px value, since no mobile frame exists yet — confirm with a mobile
-     frame and tighten these once available. */
+     eyebrow/accent, display line, and mega line. Sizes are responsive:
+     rem-anchored min/max (respects user browser zoom/font-size settings)
+     with a fluid vw step between them via clamp(). Bounds are an assumed
+     mobile floor + the exact Figma desktop value, since no mobile frame
+     exists yet — confirm with a mobile frame and tighten once available.
+     Now tuned against DaVinci for Balbin's real metrics, not Fraunces. */
   --text-hero-eyebrow: clamp(1.375rem, 1rem + 1.6vw, 2.5rem);
   --text-hero-eyebrow--line-height: 1;
   --text-hero-eyebrow--letter-spacing: -0.08em;
@@ -42,6 +45,11 @@
   --text-hero-mega: clamp(3.5rem, 1.8rem + 7.5vw, 7.5rem);
   --text-hero-mega--line-height: 0.88;
   --text-hero-mega--letter-spacing: -0.04em;
+
+  /* Body scale — not yet used by Hero (headline-only section), seeded
+     here for the next section that needs paragraph/UI text. */
+  --text-body: clamp(1rem, 0.94rem + 0.3vw, 1.125rem);
+  --text-body--line-height: 1.5;
 
   /* ── Motion (seeded now, used from the animation pass onward) ────────
      Keep every duration/ease named — no raw numbers in animation code. */

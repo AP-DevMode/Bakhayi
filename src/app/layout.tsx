@@ -1,16 +1,29 @@
 import type { Metadata } from "next";
-import { Fraunces } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-// TODO: replace with the licensed "DaVinci for Balbin" font files once
-// supplied, then drop this Google Fonts placeholder. Nothing downstream
-// changes — --font-display-placeholder is consumed via the --font-display
-// token in tokens.css.
-const fontDisplayPlaceholder = Fraunces({
-  variable: "--font-display-placeholder",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  axes: ["opsz", "SOFT", "WONK"],
+// Licensed display face — used for all headings/hero copy. Regular + Italic
+// only (matches what's been supplied so far). Consumed via the
+// --font-display token in tokens.css — nothing downstream needs to change
+// if more weights/styles are added later.
+const fontDisplay = localFont({
+  src: [
+    { path: "../fonts/DaVinciForBalbin-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../fonts/DaVinciForBalbin-Italic.ttf", weight: "400", style: "italic" },
+  ],
+  variable: "--font-display-raw",
+  display: "swap",
+});
+
+// Body/UI face. Consumed via the --font-body token in tokens.css.
+const fontBody = localFont({
+  src: [
+    { path: "../fonts/PPNeueMontreal-Book.otf", weight: "400", style: "normal" },
+    { path: "../fonts/PPNeueMontreal-Italic.otf", weight: "400", style: "italic" },
+    { path: "../fonts/PPNeueMontreal-Medium.otf", weight: "500", style: "normal" },
+  ],
+  variable: "--font-body-raw",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fontDisplayPlaceholder.variable} h-full antialiased`}
+      className={`${fontDisplay.variable} ${fontBody.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
