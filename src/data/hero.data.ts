@@ -8,9 +8,19 @@ export const HERO = {
   accent: "a rare",
   mega: "Experience",
   background: {
-    src: "/images/hero/hero-bg.jpg",
-    // Served via next/image with priority — this is the LCP element.
-    alt: "Mist rolling over a forested mountainside in Uttarakhand",
+    // Original upload was 93s/34MB w/ audio — trimmed to an 8s silent loop
+    // and compressed (webm primary, mp4 fallback) since this autoplays on
+    // page load. Poster is the video's own first frame, shown instantly
+    // while the video buffers — this is what counts toward LCP, not the
+    // video itself.
+    video: {
+      webm: "/videos/hero/hero-bg.webm",
+      mp4: "/videos/hero/hero-bg.mp4",
+    },
+    poster: {
+      jpg: "/images/hero/hero-video-poster.jpg",
+      webp: "/images/hero/hero-video-poster.webp",
+    },
     width: 1920,
     height: 1080,
   },
