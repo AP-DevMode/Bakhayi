@@ -75,8 +75,12 @@ float ibiFbm(vec3 x) {
 }
 `;
 
-export function createIbiTextMaterial(fontSize: number, wordLength: number): IbiTextMaterial {
-  const base = createTextDerivedMaterial(new THREE.MeshBasicMaterial({ color: 0xffffff }));
+export function createIbiTextMaterial(
+  fontSize: number,
+  wordLength: number,
+  color: THREE.ColorRepresentation = 0xffffff,
+): IbiTextMaterial {
+  const base = createTextDerivedMaterial(new THREE.MeshBasicMaterial({ color }));
   const material = createDerivedMaterial(base, {
     chained: true,
     extensions: { derivatives: true },

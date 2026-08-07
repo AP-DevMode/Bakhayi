@@ -94,17 +94,50 @@ export default function TextRevealCanvas({ children, className }: TextRevealCanv
         const lineHeightPx = Number.parseFloat(style.lineHeight);
         const lineHeight = Number.isFinite(lineHeightPx) ? lineHeightPx / fontSize : 1;
         const isItalic = style.fontStyle === "italic";
+        // Hero's captions are one line each, so wrapping never came up. About's
+        // headline is a real paragraph that wraps in the DOM (see about.data.ts)
+        // — the SDF mesh needs the same constraint or it'd render as one
+        // unbroken line. mesh coordinates already live in real screen px (same
+        // space as fontSize/nodeRect below), so nodeRect.width can be handed to
+        // troika directly; no unit conversion needed. The +1px keeps
+        // already-tight single-line captions (Hero) from wrapping on a stray
+        // sub-pixel rounding error.
+        const supportedAlign = ["left", "right", "center", "justify"] as const;
+        const textAlign = (supportedAlign as readonly string[]).includes(style.textAlign)
+          ? (style.textAlign as (typeof supportedAlign)[number])
+          : "left";
+        // Read the real authored color off the DOM node instead of hardcoding
+        // white — this is what let About's ink-on-sand text silently render
+        // white (Hero's white-on-video look happened to match by coincidence).
+        // getComputedStyle always resolves to an rgb()/rgba() string, which
+        // THREE.Color parses directly.
+        const color = new THREE.Color(style.color);
+
+        // Tight-content-width measurement, independent of the node's own CSS
+        // box width. nodeRect.width is the full layout box (e.g. a `w-full`
+        // column), which is fine for maxWidth (wrap point must match the box),
+        // but wrong for the post-sync scale correction below: a short line
+        // inside a much wider box would get scaled up to fill that box's
+        // width, ballooning it far past its real font size. Range gives the
+        // tight bounding box of the actual rendered glyphs regardless of the
+        // parent element's width.
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const contentRect = range.getBoundingClientRect();
+        const contentWidth = Math.max(contentRect.width, 1);
 
         const mesh = new Text() as SdfLine["mesh"];
-        const material = createIbiTextMaterial(fontSize, text.length);
+        const material = createIbiTextMaterial(fontSize, text.length, color);
         mesh.text = text;
         mesh.font = `/api/hero-font/${isItalic ? "italic" : "regular"}`;
         mesh.fontSize = fontSize;
         mesh.letterSpacing = letterSpacing;
         mesh.lineHeight = String(lineHeight);
+        mesh.textAlign = textAlign;
+        mesh.maxWidth = nodeRect.width + 1;
         mesh.anchorX = "center" as unknown as number;
         mesh.anchorY = "middle" as unknown as number;
-        mesh.color = 0xffffff;
+        mesh.color = color;
         mesh.material = material;
         mesh.renderOrder = 20;
         mesh.position.set(
@@ -123,7 +156,12 @@ export default function TextRevealCanvas({ children, className }: TextRevealCanv
               // A single uniform scale preserves the font's real proportions.
               // Scaling X and Y independently made the SDF copy look like a
               // subtly different typeface even though it used the same file.
-              const fontScale = nodeRect.width / renderedWidth;
+              // Scaled against the tight content width (not nodeRect.width) —
+              // a short line inside a wide `w-full` box would otherwise be
+              // blown up to fill the whole box instead of matching its own
+              // real rendered size, which is what caused About's eyebrow to
+              // balloon up and overlap the headline beneath it.
+              const fontScale = contentWidth / renderedWidth;
               mesh.scale.setScalar(fontScale);
             }
             resolve();
@@ -157,11 +195,41 @@ export default function TextRevealCanvas({ children, className }: TextRevealCanv
       animationFrame = requestAnimationFrame(render);
     };
 
-    // Match measurements only after next/font has installed the exact face;
-    // otherwise the first layout can be based on the serif fallback.
-    void document.fonts.ready.then(() => build());
+    // Hero sits at the top of the page, so firing on mount always meant
+    // "in view" in practice. About (and any later section reusing this
+    // component) doesn't have that guarantee — building and animating a
+    // reveal no one is looking at wastes the moment entirely. Gate the
+    // first build behind the same fire-once IntersectionObserver pattern
+    // IllustrationReveal uses, so the WebGL text reveals when the section
+    // actually scrolls into frame instead of racing the page load.
+    let hasTriggered = false;
+    const triggerBuild = () => {
+      if (hasTriggered || cancelled) return;
+      hasTriggered = true;
+      // Still wait on next/font so measurements aren't based on the
+      // fallback serif before the real face installs.
+      void document.fonts.ready.then(() => {
+        if (!cancelled) build();
+      });
+    };
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          triggerBuild();
+          visibilityObserver.disconnect();
+        }
+      },
+      { threshold: 0, rootMargin: "0px 0px -10% 0px" },
+    );
+    visibilityObserver.observe(container);
 
     const resizeObserver = new ResizeObserver(() => {
+      // Only reacts to resizes after the first build has actually run —
+      // otherwise a resize firing before the section ever scrolls into view
+      // (e.g. a font/layout shift while it's still off-screen) would call
+      // build() directly and defeat the visibility gate above.
+      if (!hasTriggered) return;
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
         container.removeAttribute("data-ibi-ready");
@@ -174,6 +242,7 @@ export default function TextRevealCanvas({ children, className }: TextRevealCanv
 
     return () => {
       cancelled = true;
+      visibilityObserver.disconnect();
       cancelAnimationFrame(animationFrame);
       window.clearTimeout(resizeTimer);
       resizeObserver.disconnect();

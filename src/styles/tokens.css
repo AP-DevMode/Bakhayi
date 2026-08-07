@@ -4,10 +4,9 @@
    Every section pulls from here — never hardcode a hex, px, or ease
    inside a component file.
 
-   STATUS: seed set, extracted from the Hero section only (Figma has no
-   variables/styles defined yet — see note below). Extend this file as
-   each new section is built; do not let values drift back into
-   components.
+   STATUS: extracted from Hero + About (Figma has no variables/styles
+   defined yet — see note below). Extend this file as each new section
+   is built; do not let values drift back into components.
    ───────────────────────────────────────────────────────────────────── */
 
 @theme {
@@ -25,6 +24,13 @@
   --color-nav-surface: rgba(10, 9, 4, 0.05);
   --color-nav-border: rgba(255, 255, 255, 0.12);
   --color-nav-border-strong: rgba(255, 255, 255, 0.16);
+
+  /* About — solid palette from Figma node 760:45 dev mode. "sand" is the
+     section background, "ink" is the body-copy color used lower in the
+     section (same 10/9/4 as nav-surface above, but solid here rather
+     than translucent). */
+  --color-sand: #dbd0c3;
+  --color-ink: #0a0904;
 
   /* ── Typography ─────────────────────────────────────────────────────
      Display: "DaVinci for Balbin" (Regular + Italic), licensed, loaded
@@ -68,10 +74,42 @@
   --text-nav-label--line-height: 1.4;
   --text-nav-label--letter-spacing: -0.03em;
 
+  /* ABOUT SECTION TYPE — Figma node 760:45, same "fixed to desktop
+     dev-mode spec" rule as Hero above (no mobile frame yet). */
+  --text-about-eyebrow: 1rem; /* 16px, node 760:48 */
+  --text-about-eyebrow--line-height: 1;
+  --text-about-eyebrow--letter-spacing: -0.06em;
+
+  --text-about-headline: 3.75rem; /* 60px, node 760:49 */
+  --text-about-headline--line-height: 0.96;
+  --text-about-headline--letter-spacing: -0.06em;
+
+  --text-about-kicker: 1.25rem; /* 20px, node 760:60 */
+  --text-about-kicker--letter-spacing: -0.04em;
+
+  --text-about-body: 1rem; /* 16px, node 760:67 */
+  --text-about-body--line-height: 1.4;
+  --text-about-body--letter-spacing: -0.01em;
+
   /* ── Motion (seeded now, used from the animation pass onward) ────────
      Keep every duration/ease named — no raw numbers in animation code. */
   --ease-out-silk: cubic-bezier(0.25, 0.1, 0.1, 1);
   --duration-slow: 0.9s;
   --duration-cinematic: 4s;
   --duration-text-reveal: 3.85s;
+
+  /* About — mountain illustration scroll reveal (IllustrationReveal.tsx).
+     Slower than --duration-slow: these are large full-illustration wipes,
+     not small UI transitions, so they read as a deliberate unveiling
+     rather than a snap-in. Stagger offset lets left/right illustrations
+     reveal a beat apart instead of both firing at once. */
+  --duration-illustration-reveal: 1.6s;
+  --delay-illustration-stagger: 0.15s;
+
+  /* Ink-dissolve shape for the same reveal (v2 — see globals.css comment):
+     how far the soft-edged mask blooms from center, and how much focus
+     blur resolves away as it does. Named so both stay tunable in one
+     place instead of buried in the mask/filter math. */
+  --blur-illustration-reveal: 18px;
+  --feather-illustration-reveal: 26%;
 }

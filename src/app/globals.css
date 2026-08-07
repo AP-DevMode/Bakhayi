@@ -21,3 +21,72 @@ body {
     color: inherit;
   }
 }
+
+/* About — mountain illustration reveal (IllustrationReveal.tsx).
+   Adapted from a classic scroll-triggered "ink transition" effect: the part
+   worth keeping is the choreography (hidden until scrolled into view, then
+   dissolves in once and never re-hides) — not the literal ink-brush sprite
+   sheet, which doesn't apply to flat line-art illustrations.
+
+   v1 used a hard clip-path wipe (a rectangular edge sliding down), which
+   read as mechanical rather than ink-like. This version replaces it with a
+   soft radial mask that blooms from the illustration's center — closer to
+   ink spreading outward and settling into focus — combined with a blur
+   that resolves to sharp, plus the original gentle rise/fade.
+   --reveal-progress drives the mask radius; it's registered via @property
+   so the browser can interpolate it smoothly on transition instead of
+   snapping (unregistered custom properties can't be transitioned). Still
+   plain CSS, no JS beyond the existing data-attribute toggle. */
+@property --reveal-progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+.illustration-reveal {
+  --reveal-progress: 0%;
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(var(--blur-illustration-reveal));
+  -webkit-mask-image: radial-gradient(
+    circle farthest-corner at 50% 55%,
+    #000 var(--reveal-progress),
+    transparent calc(var(--reveal-progress) + var(--feather-illustration-reveal))
+  );
+  mask-image: radial-gradient(
+    circle farthest-corner at 50% 55%,
+    #000 var(--reveal-progress),
+    transparent calc(var(--reveal-progress) + var(--feather-illustration-reveal))
+  );
+  transition:
+    --reveal-progress var(--duration-illustration-reveal) var(--ease-out-silk),
+    opacity var(--duration-illustration-reveal) var(--ease-out-silk),
+    filter var(--duration-illustration-reveal) var(--ease-out-silk),
+    transform var(--duration-illustration-reveal) var(--ease-out-silk);
+  transition-delay: var(--reveal-stagger, 0s);
+  will-change: opacity, filter, transform;
+}
+
+/* Set via the `staggered` prop — offsets a second illustration by one
+   stagger unit so both don't dissolve in lockstep. */
+.illustration-reveal[data-staggered="true"] {
+  --reveal-stagger: var(--delay-illustration-stagger);
+}
+
+.illustration-reveal[data-revealed="true"] {
+  --reveal-progress: 100%;
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .illustration-reveal {
+    mask-image: none;
+    -webkit-mask-image: none;
+    filter: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

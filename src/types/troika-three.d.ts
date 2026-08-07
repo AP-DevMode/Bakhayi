@@ -9,6 +9,8 @@ declare module "troika-three-text" {
     lineHeight: string | number;
     anchorX: string | number;
     anchorY: string | number;
+    textAlign: string;
+    maxWidth: number;
     color: THREE.ColorRepresentation;
     textRenderInfo?: { blockBounds: [number, number, number, number] };
     sync(callback?: () => void): void;

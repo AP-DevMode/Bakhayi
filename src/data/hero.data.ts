@@ -2,11 +2,11 @@
 // Nothing in components/sections/hero reads content from anywhere else.
 
 export const HERO = {
-  eyebrow: "Every",
-  displayLine1: "Home",
-  displayLine2: "Offers",
-  accent: "a rare",
-  mega: "Experience",
+  eyebrow: "EVERY",
+  displayLine1: "HOME",
+  displayLine2: "OFFERS",
+  accent: "A RARE",
+  mega: "EXPERIENCE",
   background: {
     // Original upload was 93s/34MB w/ audio — trimmed to an 8s silent loop
     // and compressed (webm primary, mp4 fallback) since this autoplays on
