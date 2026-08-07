@@ -5,3 +5,19 @@ body {
   background: var(--color-paper);
   color: #000;
 }
+
+/* The accessible DOM copy owns layout; once the exact ibi.cash-style SDF
+   layer is compiled, it becomes the visible copy for the dissolve reveal. */
+.hero-text-reveal {
+  display: inline-block;
+}
+
+[data-ibi-ready="true"] .hero-text-reveal {
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ibi-ready="true"] .hero-text-reveal {
+    color: inherit;
+  }
+}

@@ -19,6 +19,13 @@
      stops being manual extraction. */
   --color-paper: #ffffff;
 
+  /* Nav — glass pill over the Hero video (Figma node 749:14/749:41).
+     Exact rgba values from Figma dev mode; no equivalent brand color
+     exists yet since these are translucency-based, not solid hues. */
+  --color-nav-surface: rgba(10, 9, 4, 0.05);
+  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-border-strong: rgba(255, 255, 255, 0.16);
+
   /* ── Typography ─────────────────────────────────────────────────────
      Display: "DaVinci for Balbin" (Regular + Italic), licensed, loaded
      locally via next/font/local in layout.tsx as --font-display-raw.
@@ -28,7 +35,11 @@
   --font-display: var(--font-display-raw), ui-serif, Georgia, serif;
   --font-body: var(--font-body-raw), ui-sans-serif, system-ui, sans-serif;
 
-  /* Headline scale — reused wherever the site needs the same "voice":
+  /* HERO FONT CONTROLS — edit these values to change the headline's font
+     sizes, line heights, and letter spacing. The dissolve layer reads the
+     computed values from the DOM, so it stays synchronized automatically.
+
+     Headline scale — reused wherever the site needs the same "voice":
      eyebrow/accent, display line, and mega line. Values below are locked
      to the exact Figma dev-mode spec (node 741:3, desktop frame) rather
      than fluid clamp()s — no mobile frame exists yet in Figma, so there's
@@ -50,9 +61,17 @@
   --text-body: clamp(1rem, 0.94rem + 0.3vw, 1.125rem);
   --text-body--line-height: 1.5;
 
+  /* Nav label — the "Book Now" pill button (Figma node 749:48). Exact
+     dev-mode value, fixed like the Hero scale above (no mobile frame
+     to interpolate toward yet). */
+  --text-nav-label: 0.75rem;
+  --text-nav-label--line-height: 1.4;
+  --text-nav-label--letter-spacing: -0.03em;
+
   /* ── Motion (seeded now, used from the animation pass onward) ────────
      Keep every duration/ease named — no raw numbers in animation code. */
   --ease-out-silk: cubic-bezier(0.25, 0.1, 0.1, 1);
   --duration-slow: 0.9s;
-  --duration-cinematic: 1.4s;
+  --duration-cinematic: 4s;
+  --duration-text-reveal: 3.85s;
 }
