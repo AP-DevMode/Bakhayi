@@ -111,6 +111,19 @@
   --text-rishikesh-scroll--line-height: 1.48;
   --text-rishikesh-scroll--letter-spacing: -0.01em;
 
+  /* RISHIKESH WORD-DOT TYPE — Figma node 785:67 (the nine floating word
+     labels, "Solitude"/"Healing"/etc., node e.g. 785:79), which sit inside
+     the SAME Rishikesh section as --text-rishikesh-scroll above, not a
+     separate "Rishikesh 2" section — see Rishikesh.tsx. Kept as its own
+     token (rather than the "rishikesh2" name below, left as-is to avoid
+     an unnecessary rename) since the dots are smaller than
+     --text-rishikesh-scroll (12px vs 16px) despite both being PP Neue
+     Montreal Book/uppercase — dev-mode spec, fixed to desktop like the
+     rest. */
+  --text-rishikesh2-dot: 0.75rem; /* 12px, node 785:79 */
+  --text-rishikesh2-dot--line-height: 1.48;
+  --text-rishikesh2-dot--letter-spacing: -0.03em;
+
   /* ── Motion (seeded now, used from the animation pass onward) ────────
      Keep every duration/ease named — no raw numbers in animation code. */
   --ease-out-silk: cubic-bezier(0.25, 0.1, 0.1, 1);
@@ -139,4 +152,16 @@
      lib/rishikeshLineReveal.config.ts), not CSS — this token only controls
      the mask gradient's feather width. */
   --feather-rishikesh-line-reveal: 18%;
+
+  /* Rishikesh — background line-out/photo-in crossfade, within the single
+     Rishikesh section (RishikeshLineReveal.tsx + RishikeshPhotoReveal.tsx).
+     Both fades are scroll-scrubbed opacity tied 1:1 to scroll position (no
+     duration of their own — see lib/rishikeshCrossfade.config.ts), so no
+     CSS token is needed here.
+
+     The staggered word-dot reveal that follows it (RishikeshDotsReveal.tsx)
+     is GSAP-driven (duration/stagger/distance are JS values consumed
+     directly by tween calls, not CSS transitions), so — same convention as
+     rishikeshLineReveal.config.ts and smoothScroll.config.ts — its tuning
+     knobs live in lib/rishikeshDotsReveal.config.ts instead of here. */
 }

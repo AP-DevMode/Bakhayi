@@ -27,6 +27,19 @@ gsap.registerPlugin(ScrollTrigger);
 // lib/rishikeshLineReveal.config.ts — nothing here should need to change
 // for a tuning pass. To change how soft the wipe edge is, edit
 // --feather-rishikesh-line-reveal in tokens.css.
+//
+// This tween only draws the line IN as the section scrolls into place
+// ("top bottom" → "top top" — i.e. finishes exactly when the section fully
+// fills the viewport). What happens AFTER that — the line fading back out
+// as the photo crossfades in underneath, once the user keeps scrolling
+// further — used to live in this file as a second tween, but now lives in
+// RishikeshScrollSequence.tsx: that fade is part of a pinned sequence that
+// only starts once this reveal-in has already finished, so it made more
+// sense as one shared timeline alongside the photo fade-in and dot reveal
+// than a second independent tween bolted onto this component. See
+// rishikeshScrollSequence.config.ts for why pinning (not a scroll
+// sub-range) was needed to make "hold fully-loaded, then advance on further
+// scroll" possible at all.
 // ─────────────────────────────────────────────────────────────────────────
 
 type RishikeshLineRevealProps = {
