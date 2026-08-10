@@ -788,7 +788,10 @@ export function Clouds({
     instanceRef.current?.setOptions(options);
   });
   return (
-    <div className={className} style={{ position: "relative", ...style }}>
+    // `isolation: isolate` pins this whole component to one self-contained
+    // stacking context, so nothing outside it (e.g. later sections) can
+    // slot between the content and the fog canvas painted below.
+    <div className={className} style={{ position: "relative", isolation: "isolate", ...style }}>
       <canvas
         ref={sourceRef}
         // @ts-expect-error experimental html-in-canvas attribute
@@ -839,6 +842,14 @@ export function Clouds({
           width: "100%",
           height: "100%",
           pointerEvents: "none",
+          // Explicit z-index, not just DOM order, because About stacks a
+          // z-10 wrapper around its illustrations (for their own intentional
+          // bleed) — an unset (auto) z-index here would lose to that even
+          // though this canvas comes later in the tree. isolate above scopes
+          // this value to just this component's own stack, so it only has to
+          // beat z-indexes actually used inside `children`, not the rest of
+          // the page.
+          zIndex: 30,
         }}
       />
     </div>

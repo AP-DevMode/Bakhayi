@@ -32,6 +32,12 @@
   --color-sand: #dbd0c3;
   --color-ink: #0a0904;
 
+  /* Rishikesh — dark full-bleed section background (Figma node 779:92).
+     Confirmed as a one-off solid fill via dev mode, not a Figma variable
+     (get_variable_defs on this node only returned Content/White and
+     Brand/Sec, both already mapped above as paper/sand). */
+  --color-espresso: #312725;
+
   /* ── Typography ─────────────────────────────────────────────────────
      Display: "DaVinci for Balbin" (Regular + Italic), licensed, loaded
      locally via next/font/local in layout.tsx as --font-display-raw.
@@ -91,6 +97,20 @@
   --text-about-body--line-height: 1.4;
   --text-about-body--letter-spacing: -0.01em;
 
+  /* RISHIKESH SECTION TYPE — Figma node 779:92, dev-mode spec. The
+     "THE / BAKHAYI / EXPERIENCE" stacked lines reuse --text-about-headline
+     (identical 60px/0.96/-0.06em spec, same visual scale) rather than
+     duplicating a token — only the "RISHIKESH" mega line and the "Scroll"
+     label need their own values. Same fixed-to-desktop rule as above (no
+     mobile frame yet). */
+  --text-rishikesh-display: 7.5rem; /* 120px, node 779:96 */
+  --text-rishikesh-display--line-height: 0.96;
+  --text-rishikesh-display--letter-spacing: -0.06em;
+
+  --text-rishikesh-scroll: 1rem; /* 16px, node 779:100 */
+  --text-rishikesh-scroll--line-height: 1.48;
+  --text-rishikesh-scroll--letter-spacing: -0.01em;
+
   /* ── Motion (seeded now, used from the animation pass onward) ────────
      Keep every duration/ease named — no raw numbers in animation code. */
   --ease-out-silk: cubic-bezier(0.25, 0.1, 0.1, 1);
@@ -112,4 +132,11 @@
      place instead of buried in the mask/filter math. */
   --blur-illustration-reveal: 18px;
   --feather-illustration-reveal: 26%;
+
+  /* Rishikesh — background line scroll-draw reveal (RishikeshLineReveal.tsx).
+     Softness of the top-to-bottom wipe edge as the line reveals; the reveal
+     progress itself is driven by GSAP ScrollTrigger (see
+     lib/rishikeshLineReveal.config.ts), not CSS — this token only controls
+     the mask gradient's feather width. */
+  --feather-rishikesh-line-reveal: 18%;
 }

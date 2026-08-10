@@ -90,3 +90,40 @@ body {
     transition: none;
   }
 }
+
+/* Rishikesh — background line scroll-draw reveal (RishikeshLineReveal.tsx).
+   Rishikesh-Line.svg turned out to be a 121-subpath compound FILL shape
+   exported from Figma (no `stroke` anywhere on it) rather than a true
+   stroked line — so a literal GSAP DrawSVGPlugin stroke-dashoffset draw has
+   nothing to animate on it (dash properties only affect strokes).
+   This reveals the same artwork instead with a scroll-scrubbed top-to-
+   bottom mask wipe: --line-reveal-progress is written every scroll tick by
+   a GSAP ScrollTrigger tween (see the component), driving a linear-gradient
+   mask edge. --feather-rishikesh-line-reveal (tokens.css) softens that edge
+   so it reads as a wipe rather than a hard clip. */
+@property --line-reveal-progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+.rishikesh-line-reveal {
+  --line-reveal-progress: 0%;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(var(--line-reveal-progress) - var(--feather-rishikesh-line-reveal)),
+    transparent var(--line-reveal-progress)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(var(--line-reveal-progress) - var(--feather-rishikesh-line-reveal)),
+    transparent var(--line-reveal-progress)
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rishikesh-line-reveal {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}

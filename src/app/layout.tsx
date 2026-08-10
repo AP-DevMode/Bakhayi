@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Nav from "@/components/sections/nav/Nav";
+import SmoothScroll from "@/components/effects/SmoothScroll";
 import "./globals.css";
 
 // Licensed display face — used for all headings/hero copy. Regular + Italic
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${fontDisplay.variable} ${fontBody.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <SmoothScroll />
         <Nav />
         {children}
       </body>

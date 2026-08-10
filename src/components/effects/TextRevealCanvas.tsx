@@ -94,14 +94,6 @@ export default function TextRevealCanvas({ children, className }: TextRevealCanv
         const lineHeightPx = Number.parseFloat(style.lineHeight);
         const lineHeight = Number.isFinite(lineHeightPx) ? lineHeightPx / fontSize : 1;
         const isItalic = style.fontStyle === "italic";
-        // Hero's captions are one line each, so wrapping never came up. About's
-        // headline is a real paragraph that wraps in the DOM (see about.data.ts)
-        // — the SDF mesh needs the same constraint or it'd render as one
-        // unbroken line. mesh coordinates already live in real screen px (same
-        // space as fontSize/nodeRect below), so nodeRect.width can be handed to
-        // troika directly; no unit conversion needed. The +1px keeps
-        // already-tight single-line captions (Hero) from wrapping on a stray
-        // sub-pixel rounding error.
         const supportedAlign = ["left", "right", "center", "justify"] as const;
         const textAlign = (supportedAlign as readonly string[]).includes(style.textAlign)
           ? (style.textAlign as (typeof supportedAlign)[number])
@@ -125,6 +117,10 @@ export default function TextRevealCanvas({ children, className }: TextRevealCanv
         range.selectNodeContents(node);
         const contentRect = range.getBoundingClientRect();
         const contentWidth = Math.max(contentRect.width, 1);
+        // getClientRects() gives one rect per DOM line box, so >1 means the
+        // browser actually wrapped this node onto multiple lines (About's
+        // headline paragraph). A single-line caption (Hero) gets exactly one.
+        const isSingleLine = range.getClientRects().length <= 1;
 
         const mesh = new Text() as SdfLine["mesh"];
         const material = createIbiTextMaterial(fontSize, text.length, color);
@@ -134,7 +130,17 @@ export default function TextRevealCanvas({ children, className }: TextRevealCanv
         mesh.letterSpacing = letterSpacing;
         mesh.lineHeight = String(lineHeight);
         mesh.textAlign = textAlign;
-        mesh.maxWidth = nodeRect.width + 1;
+        // Constraining maxWidth to the DOM box only matters for text that's
+        // genuinely meant to wrap across multiple lines in the DOM — the SDF
+        // mesh then needs the same width so its line breaks land in the same
+        // places. For single-line captions this constraint is actively
+        // harmful: the mesh renders with a different font resource
+        // (/api/hero-font/...) than the DOM's own CSS font, so a multi-word
+        // caption (e.g. Hero's "A RARE") can measure wider in that font than
+        // nodeRect.width, forcing troika to wrap at the space even though the
+        // real DOM text never wraps. Infinity removes that risk entirely for
+        // anything confirmed single-line.
+        mesh.maxWidth = isSingleLine ? Infinity : nodeRect.width + 1;
         mesh.anchorX = "center" as unknown as number;
         mesh.anchorY = "middle" as unknown as number;
         mesh.color = color;

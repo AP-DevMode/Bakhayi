@@ -62,7 +62,10 @@ export default function Hero() {
           >
             {HERO.displayLine2}
           </span>
-          <span data-reveal-text className={`font-display italic text-hero-eyebrow uppercase ${REVEAL_TEXT_CLASSES}`}>
+          <span
+            data-reveal-text
+            className={`font-display italic text-hero-eyebrow uppercase whitespace-nowrap ${REVEAL_TEXT_CLASSES}`}
+          >
             {HERO.accent}
           </span>
         </div>
