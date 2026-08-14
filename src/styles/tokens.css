@@ -124,6 +124,27 @@
   --text-rishikesh2-dot--line-height: 1.48;
   --text-rishikesh2-dot--letter-spacing: -0.03em;
 
+  /* RISHIKESH RIVER TYPE — Figma frame "Rishikesh 2", node 800:2. This is
+     the SECOND panel of the horizontal rail (see Rishikesh.tsx), not a
+     variant of the --text-rishikesh2-* tokens above — those belong to the
+     word-dots on panel 1, and only share a name because Figma's frame
+     numbering and this file's token naming drifted apart. Named by content
+     ("river") rather than by frame number to stop that drift spreading.
+
+     88px matches --text-hero-display exactly, but the line-height does not
+     (0.92 here vs the Hero's default), so this can't just reuse that token
+     — a headline token in this project carries its own line-height and
+     tracking, and borrowing one while overriding a third of it is how
+     values start leaking back into components.
+
+     The body paragraph (node 800:6) is 16px/1.4/-0.01em, which IS exactly
+     --text-about-body, so it reuses that token rather than duplicating it —
+     same precedent as the Rishikesh lockup reusing --text-about-headline.
+     Same fixed-to-desktop rule as everything above (no mobile frame yet). */
+  --text-rishikesh-river-headline: 5.5rem; /* 88px, node 800:5 */
+  --text-rishikesh-river-headline--line-height: 0.92;
+  --text-rishikesh-river-headline--letter-spacing: -0.06em;
+
   /* ── Motion (seeded now, used from the animation pass onward) ────────
      Keep every duration/ease named — no raw numbers in animation code. */
   --ease-out-silk: cubic-bezier(0.25, 0.1, 0.1, 1);

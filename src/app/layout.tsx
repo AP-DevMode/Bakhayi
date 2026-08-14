@@ -39,7 +39,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${fontDisplay.variable} ${fontBody.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/* suppressHydrationWarning is here for BROWSER EXTENSIONS, not for any
+          server/client difference of our own. Extensions inject attributes
+          onto <body> before React hydrates — ColorZilla adds
+          cz-shortcut-listen="true", Grammarly adds data-gr-ext-installed, and
+          several password managers do the same — and React reports the
+          resulting attribute mismatch as a hydration error even though the
+          markup we render is identical on both sides.
+
+          It is deliberately scoped to this ONE element and does NOT cascade:
+          React only silences attribute/text differences on the tag that
+          carries it, so a genuine hydration bug anywhere inside the app still
+          reports normally. Do not add this to a component to make a real
+          mismatch go away — the cause there is always ours to fix. */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <SmoothScroll />
         <Nav />
         {children}

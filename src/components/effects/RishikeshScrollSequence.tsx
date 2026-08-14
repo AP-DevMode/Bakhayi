@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { RISHIKESH_SCROLL_SEQUENCE_CONFIG } from "@/lib/rishikeshScrollSequence.config";
 import { RISHIKESH_CROSSFADE_CONFIG } from "@/lib/rishikeshCrossfade.config";
 import { RISHIKESH_DOTS_REVEAL_CONFIG } from "@/lib/rishikeshDotsReveal.config";
+import { RISHIKESH_HORIZONTAL_CONFIG } from "@/lib/rishikeshHorizontal.config";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -48,23 +49,80 @@ export default function RishikeshScrollSequence() {
     // moving and can't describe scroll progress any more — the track is the
     // element whose edges actually travel through the viewport.
     const track = document.querySelector<HTMLElement>("[data-rishikesh-track]");
-    const section = document.querySelector<HTMLElement>(
-      '[data-figma-node="779:92"]',
+    // Scope the element lookups to the FIRST PANEL of the horizontal rail,
+    // not to the whole section. The section now contains every panel of the
+    // rail (see Rishikesh.tsx), and this timeline describes only what
+    // happens on panel 1 — its line/veil dissolve and its word-dots. A
+    // later panel that happens to carry a line illustration or a dot would
+    // otherwise be swept into these same tweens and faded out along with
+    // panel 1's, on a beat that has nothing to do with it.
+    const panel = document.querySelector<HTMLElement>(
+      '[data-rishikesh-panel="rishikesh"]',
     );
-    if (!track || !section) return;
+    if (!track || !panel) return;
 
-    const line = section.querySelector<HTMLElement>(".rishikesh-line-reveal");
-    const bg = section.querySelector<HTMLElement>("[data-rishikesh-bg]");
+    // The rail is the flex row of panels, and it is NOT scoped to panel 1 —
+    // it's the thing that carries every panel past the frame, so it's looked
+    // up on the section rather than inside the panel the other three live in.
+    const rail = document.querySelector<HTMLElement>("[data-rishikesh-rail]");
+
+    const line = panel.querySelector<HTMLElement>(".rishikesh-line-reveal");
+    const bg = panel.querySelector<HTMLElement>("[data-rishikesh-bg]");
     const dots = Array.from(
-      section.querySelectorAll<HTMLElement>("[data-rishikesh-dot]"),
+      panel.querySelectorAll<HTMLElement>("[data-rishikesh-dot]"),
     );
-    if (!line || !bg || dots.length === 0) return;
+    if (!rail || !line || !bg || dots.length === 0) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // How far the rail has to travel: enough that its LAST panel ends flush
+    // with the right edge of the sticky frame. Read from the DOM rather than
+    // hardcoded to a panel count, so appending a panel needs no arithmetic
+    // here — see rishikeshHorizontal.config.ts. Passed to GSAP as a function
+    // so it's re-read on every ScrollTrigger refresh (paired with
+    // invalidateOnRefresh below) instead of being frozen at the width the
+    // window happened to have on mount.
+    const railDistance = () => -(rail.scrollWidth - window.innerWidth);
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches;
+
+    if (reduced) {
+      // Land the DECORATIVE beats on their settled state and never play them:
+      // the line stays visible (never hide content, matching every other
+      // Rishikesh reveal's fallback), the espresso veil stays opaque so the
+      // section reads as the designed green frame, and the dots sit in place.
       gsap.set(line, { opacity: 1 });
       gsap.set(bg, { opacity: 1 });
       gsap.set(dots, { opacity: 1, y: 0, scale: 1 });
-      return;
+
+      // The rail is NOT decorative and is deliberately still animated here.
+      // Earlier this branch returned outright, which left the rail parked at
+      // x=0 — and since every panel after Rishikesh lives inside a frame that
+      // clips, that meant a reduced-motion visitor could never reach any of
+      // them at all. Sideways travel is this part of the page's only
+      // navigation, so removing it removes content, not motion.
+      //
+      // What reduced-motion does get is the honest version: `none` easing, so
+      // the rail tracks the scroll wheel exactly 1:1 with no acceleration
+      // curve of its own, and no other layer moving at the same time.
+      const railOnly = gsap.timeline({
+        scrollTrigger: {
+          trigger: track,
+          start: RISHIKESH_SCROLL_SEQUENCE_CONFIG.start,
+          end: RISHIKESH_SCROLL_SEQUENCE_CONFIG.end,
+          scrub: RISHIKESH_SCROLL_SEQUENCE_CONFIG.scrub,
+          invalidateOnRefresh: true,
+        },
+      });
+      railOnly.fromTo(
+        rail,
+        { x: 0 },
+        { x: railDistance, ease: "none", duration: 1 },
+        0,
+      );
+      return () => {
+        railOnly.scrollTrigger?.kill();
+        railOnly.kill();
+      };
     }
 
     gsap.set(dots, {
@@ -79,6 +137,12 @@ export default function RishikeshScrollSequence() {
         start: RISHIKESH_SCROLL_SEQUENCE_CONFIG.start,
         end: RISHIKESH_SCROLL_SEQUENCE_CONFIG.end,
         scrub: RISHIKESH_SCROLL_SEQUENCE_CONFIG.scrub,
+        // The rail's travel distance depends on viewport width, so it has to
+        // be recomputed rather than cached — without this, resizing the window
+        // (or any refresh triggered by SmoothScroll.tsx re-measuring Lenis)
+        // would leave the rail sliding to the OLD width's end position and
+        // stop short of, or overshoot past, the last panel.
+        invalidateOnRefresh: true,
       },
     });
 
@@ -122,6 +186,24 @@ export default function RishikeshScrollSequence() {
         },
       },
       RISHIKESH_DOTS_REVEAL_CONFIG.position,
+    );
+
+    // Travel beat — the rail slides sideways, carrying the finished panel 1
+    // out of the frame and the next panel in. Starts strictly after the dots
+    // have all landed AND after a hold (see the `position` note in
+    // rishikeshHorizontal.config.ts), so panel 1 is seen complete and at rest
+    // before it leaves. Nothing else on the timeline is moving at this point:
+    // the whole panel travels as one object, which is what makes the move read
+    // as the camera panning rather than as the page rebuilding itself.
+    tl.fromTo(
+      rail,
+      { x: 0 },
+      {
+        x: railDistance,
+        duration: RISHIKESH_HORIZONTAL_CONFIG.duration,
+        ease: RISHIKESH_HORIZONTAL_CONFIG.ease,
+      },
+      RISHIKESH_HORIZONTAL_CONFIG.position,
     );
 
     return () => {
