@@ -39,6 +39,12 @@ interface TextRevealTrigger {
 interface TextRevealCanvasProps {
   children: React.ReactNode;
   className?: string;
+  // Passthrough for geometry that comes from a *.data.ts file rather than
+  // from a class string. Tailwind only extracts arbitrary values it can see
+  // statically in JSX, so a data-driven width can't be a className — and
+  // wrapping this component in yet another sized div to carry it would put a
+  // box between the reveal's `relative` container and the text it measures.
+  style?: React.CSSProperties;
   trigger?: TextRevealTrigger;
 }
 
@@ -61,7 +67,7 @@ function easeInOut(progress: number) {
   return progress * progress * (3 - 2 * progress);
 }
 
-export default function TextRevealCanvas({ children, className, trigger }: TextRevealCanvasProps) {
+export default function TextRevealCanvas({ children, className, style, trigger }: TextRevealCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -415,7 +421,7 @@ export default function TextRevealCanvas({ children, className, trigger }: TextR
   }, [triggerSelector, triggerThreshold, triggerRootMargin]);
 
   return (
-    <div ref={containerRef} className={`relative ${className ?? ""}`}>
+    <div ref={containerRef} className={`relative ${className ?? ""}`} style={style}>
       {children}
       <canvas
         ref={canvasRef}

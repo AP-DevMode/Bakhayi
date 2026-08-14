@@ -145,6 +145,27 @@
   --text-rishikesh-river-headline--line-height: 0.92;
   --text-rishikesh-river-headline--letter-spacing: -0.06em;
 
+  /* RISHIKESH REMEMBER TYPE — Figma frame "Rishikesh 3", node 804:45, the
+     THIRD panel of the horizontal rail. Named by content again ("remember",
+     after the copy's turn — "what people remember is something else")
+     rather than by frame number, same reasoning as "river" above.
+
+     Only ONE new token here. The lede (node 804:50) is display-font copy set
+     at 20px — the same size as --text-about-kicker but not the same type:
+     the kicker tracks -0.04em with no line-height of its own, this tracks
+     -0.06em over a 1.32 line-height. Two of the three values differ, so
+     borrowing the kicker and overriding it in the component is exactly the
+     leak the note above warns about.
+
+     Deliberately NOT a second token: the body paragraph (node 804:51) is
+     16px/1.4/-0.01em = --text-about-body verbatim, so it reuses that, same
+     as the river panel's body does. Figma also sets opacity 80% on it,
+     which is an element style rather than a type style and lives in the
+     component. Same fixed-to-desktop rule as everything above. */
+  --text-rishikesh-remember-lede: 1.25rem; /* 20px, node 804:50 */
+  --text-rishikesh-remember-lede--line-height: 1.32;
+  --text-rishikesh-remember-lede--letter-spacing: -0.06em; /* -1.2px @ 20px */
+
   /* ── Motion (seeded now, used from the animation pass onward) ────────
      Keep every duration/ease named — no raw numbers in animation code. */
   --ease-out-silk: cubic-bezier(0.25, 0.1, 0.1, 1);

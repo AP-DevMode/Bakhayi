@@ -1,71 +1,87 @@
 // lib/rishikeshHorizontal.config.ts — the ONLY file to edit to change how the
-// horizontal rail SLIDE feels: when it starts, how long it takes, and its
-// easing. RishikeshScrollSequence.tsx reads this to add one more tween to the
+// horizontal rail SLIDES feel: when the first one starts, how long each takes,
+// how long the rail rests between them, and the easing.
+// RishikeshScrollSequence.tsx reads this to append one tween PER SLIDE to the
 // sequence's single shared timeline; nothing there should need to change for a
-// tuning pass. Same "config owns the numbers" convention as
-// rishikeshCrossfade.config.ts and rishikeshDotsReveal.config.ts.
+// tuning pass, or for a fourth panel. Same "config owns the numbers"
+// convention as rishikeshCrossfade.config.ts and rishikeshDotsReveal.config.ts.
 //
 // WHY IT LIVES ON THE SAME TIMELINE AS PANEL 1'S BEATS
 // The rail, the line/veil dissolve, and the word-dots all play inside ONE
 // sticky range (the track in Rishikesh.tsx). A sticky range can only be
 // described by one scrubbed timeline — a second ScrollTrigger against the same
 // track would be a separate progress clock racing the first, and the two would
-// disagree the moment either is refreshed. So the slide is a tween positioned
-// after the dots, not a rig of its own.
+// disagree the moment either is refreshed. So the slides are tweens positioned
+// after the dots, not a rig of their own.
 //
-// HOW FAR IT SLIDES — deliberately not a number in this file. The tween reads
-// `-(rail.scrollWidth - window.innerWidth)` at refresh time, so the rail always
-// ends with its LAST panel flush against the right edge of the frame. Adding a
-// third panel to the rail therefore needs no edit here, no edit in
-// Rishikesh.tsx beyond dropping the component in, and no arithmetic anywhere —
-// which is the whole reason the rail is `w-max` with `w-screen` panels rather
-// than a hardcoded `w-[200vw]`. It does mean the slide gets FASTER per panel as
-// panels are added, since the same `duration` below covers more distance; when
-// a third panel lands, grow the track height and `duration` together (see
-// below) rather than leaving it to compress.
+// ─── ONE TWEEN PER SLIDE, NOT ONE TWEEN FOR THE WHOLE RAIL ─────────────────
+// With two panels this was a single tween to `-(scrollWidth - innerWidth)`,
+// which needed no arithmetic and no edit here when a panel was appended. That
+// stops being right at three: the same tween now covers TWO viewports of
+// travel, so either the rail moves at double speed, or `duration` is doubled
+// and the two panel changes run together as one long uninterrupted move with
+// no moment where panel 2 is at rest and readable. Both fail the page's
+// sequencing rule — beats, separated by holds, not one indeterminate slide.
 //
-// ─── THE TRACK-HEIGHT RELATIONSHIP (read before changing `duration`) ────────
+// So the sequence now emits N-1 tweens for N panels, each advancing the rail
+// by exactly one panel, with `hold` of dead scroll between them. Panel count
+// is still read from the DOM, so appending a panel is still just dropping the
+// component into Rishikesh.tsx — but see the track-height note below, because
+// the timeline does now get longer with each one.
+//
+// ─── THE TRACK-HEIGHT RELATIONSHIP (read before changing anything here) ────
 // The timeline's virtual units are mapped onto the track's sticky travel by
 // ScrollTrigger, so units and scroll distance are locked together: if the
-// timeline gets longer without the track getting taller, every beat — including
-// panel 1's, which are already tuned — gets physically shorter.
+// timeline gets longer without the track getting taller, every beat —
+// including panel 1's, which are already tuned — gets physically shorter.
 //
 // Panel 1's beats occupy timeline 0 → 2.11 (crossfade 0.25→1.05, dots
 // 1.3→2.11). Before the rail existed those 2.11 units mapped onto 150dvh of
-// sticky travel (a 250dvh track). This file adds 2.11 more units, so the track
-// was grown to 400dvh — exactly 300dvh of travel, exactly double — which keeps
-// panel 1's dissolve and dot cascade landing at the same physical scroll
-// positions they were tuned at. That equality is the reason `position` and
-// `duration` below sum to precisely 4.22 and not a rounder-looking number.
+// sticky travel (a 250dvh track), which fixes the exchange rate for
+// everything since: 1 timeline unit ≈ 71.09dvh of scroll.
 //
-// So: to give the slide more room, raise `duration` AND raise h-[400dvh] in
-// Rishikesh.tsx in the same proportion. Raising one alone re-times panel 1.
+// Each slide costs `hold` + `duration` = 0.29 + 1.82 = 2.11 units — the same
+// as panel 1's whole opening sequence, and not a coincidence: it's what lets
+// the track height stay a whole multiple of 150dvh, so panel 1's dissolve and
+// dot cascade keep landing at the same physical scroll positions they were
+// tuned at. Two panels ended at 4.22 units / 400dvh track. Three end at 6.33
+// units / 550dvh.
+//
+// SO: adding a panel means BOTH of these, together —
+//   1. drop the component into the rail in Rishikesh.tsx, and
+//   2. raise that file's h-[550dvh] by 150dvh.
+// Doing (1) alone silently re-times the approved first panel.
 // ───────────────────────────────────────────────────────────────────────────
 
 export const RISHIKESH_HORIZONTAL_CONFIG = {
-  // Where in the shared timeline the rail starts moving. The dots finish at
+  // Where in the shared timeline the FIRST slide starts. The dots finish at
   // 2.11 (position 1.3 + 8 stagger gaps of 0.045 + a 0.45 tween), so 2.4 is a
   // deliberate 0.29 of dead space where panel 1 sits complete and still —
   // photo revealed, all nine dots landed, nothing moving.
   //
   // That hold is not padding. It's the same size as the two pauses already in
   // the sequence (the 0.25 before the dissolve and the 0.25 between dissolve
-  // and dots), so the page reads as four evenly-weighted beats — hold,
-  // dissolve, hold, dots, hold, travel — instead of the dots' cascade running
-  // straight into the rail departing, which would read as one long
-  // indeterminate move. Lower it toward 2.11 to tighten the handoff; raise it
-  // to make the viewer sit longer on the finished panel before it leaves.
+  // and dots), so the page reads as evenly-weighted beats — hold, dissolve,
+  // hold, dots, hold, travel — instead of the dots' cascade running straight
+  // into the rail departing, which would read as one long indeterminate move.
   position: 2.4,
 
-  // How much of the timeline the slide itself spans. 1.82 lands the total at
-  // exactly 4.22 = 2 × 2.11, which is what preserves panel 1's tuning against
-  // the doubled track — see the note above before changing this.
-  //
-  // In physical terms that's roughly 129dvh of scrolling to move one full
-  // viewport sideways: the travel is slower than the scroll driving it, which
-  // is what makes a horizontal move feel like a deliberate camera pan rather
-  // than a page swapping out.
+  // How much of the timeline ONE slide spans — one panel's worth of travel,
+  // not the whole rail's. In physical terms that's roughly 129dvh of
+  // scrolling to move one full viewport sideways: the travel is slower than
+  // the scroll driving it, which is what makes a horizontal move feel like a
+  // deliberate camera pan rather than a page swapping out.
   duration: 1.82,
+
+  // Dead scroll between one slide finishing and the next starting. Same 0.29
+  // as the hold before the first slide, so every panel gets the same beat of
+  // stillness on arrival that panel 1 gets before departure — and, more to
+  // the point, so each panel's own heading dissolve has somewhere to finish
+  // before anything else moves.
+  //
+  // Set this to 0 and the rail becomes one continuous two-viewport pan again,
+  // which is the thing the note above exists to prevent.
+  hold: 0.29,
 
   // Gentle acceleration and deceleration, nothing more. A scrubbed tween is
   // tied 1:1 to scroll position, so a strong ease here would make the rail

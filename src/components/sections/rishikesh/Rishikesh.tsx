@@ -4,6 +4,7 @@ import RishikeshPhotoReveal from "@/components/effects/RishikeshPhotoReveal";
 import RishikeshDotsReveal from "@/components/effects/RishikeshDotsReveal";
 import RishikeshScrollSequence from "@/components/effects/RishikeshScrollSequence";
 import RishikeshRiver from "@/components/sections/rishikesh/RishikeshRiver";
+import RishikeshRemember from "@/components/sections/rishikesh/RishikeshRemember";
 import TextRevealCanvas from "@/components/effects/TextRevealCanvas";
 
 // ─── Pass 1: structure, Pass 2: background line→photo crossfade + word-dots ─
@@ -37,12 +38,15 @@ import TextRevealCanvas from "@/components/effects/TextRevealCanvas";
 // so a second section element inside the rail would silently hand it a
 // different trigger box. Panels are plain divs.
 //
-// The rail's translateX is now live (Pass 2) and belongs to the SAME shared
-// timeline as panel 1's dissolve and dots — see RishikeshScrollSequence.tsx.
-// It runs last, after a hold, so panel 1 is complete and at rest before it
-// travels. The track grew from 250dvh to 400dvh to buy that beat its own
-// scroll room without compressing panel 1's; see the note on the track div
-// below for why the doubling has to be exact.
+// The rail's translateX is live and belongs to the SAME shared timeline as
+// panel 1's dissolve and dots — see RishikeshScrollSequence.tsx. It runs
+// last, after a hold, so panel 1 is complete and at rest before it travels,
+// and it is one tween PER PANEL CHANGE rather than one tween across the whole
+// width: the rail advances exactly one panel, holds, then advances again, so
+// each panel is seen at rest instead of the whole rail making one long
+// uninterrupted pan. The track grew 250 → 400 → 550dvh to buy those beats
+// their own scroll room without compressing panel 1's; see the note on the
+// track div below for why 150dvh per panel has to be exact.
 //
 // Text lockup is mathematically dead-center of the 1440x1024 frame (per
 // Figma dev-mode metadata, the lockup's bounding-box center lands exactly
@@ -55,17 +59,19 @@ export default function Rishikesh() {
   return (
     // Scroll track. The section itself is only ever one viewport tall and
     // sticks to the top of it; this wrapper's EXTRA height is the scroll
-    // distance the pinned sequence plays across. 400dvh = 100dvh of section
-    // + 300dvh of sequence room.
+    // distance the pinned sequence plays across. 550dvh = 100dvh of section
+    // + 450dvh of sequence room.
     //
-    // Was 250dvh (150dvh of room) before the rail started moving. It is now
-    // EXACTLY double, and the exactness is load-bearing rather than a round
-    // number: ScrollTrigger maps the shared timeline's virtual units onto this
-    // travel linearly, so doubling the timeline's length (panel 1's beats end
-    // at 2.11; the hold + rail slide carry it to 4.22) while doubling the
-    // travel leaves panel 1's dissolve and dot cascade landing at the same
-    // physical scroll positions they were already tuned at. Change one without
-    // the other and the approved first panel silently re-times.
+    // GROW THIS BY 150dvh EVERY TIME A PANEL IS ADDED TO THE RAIL. It went
+    // 250 → 400 when panel 2 started moving and 400 → 550 for panel 3, and
+    // the exactness is load-bearing rather than a round number: ScrollTrigger
+    // maps the shared timeline's virtual units onto this travel linearly, and
+    // each panel costs the timeline exactly 2.11 units (a 0.29 hold plus a
+    // 1.82 slide) — the same 2.11 that panel 1's own beats occupy, which
+    // originally mapped onto 150dvh. So 150dvh per panel is what keeps panel
+    // 1's dissolve and dot cascade landing at the same physical scroll
+    // positions they were already tuned at. Add a panel without adding the
+    // height and the approved first panel silently re-times.
     // See lib/rishikeshHorizontal.config.ts for the full arithmetic.
     //
     // This replaced GSAP's own `pin: true`, which silently produced a
@@ -90,7 +96,7 @@ export default function Rishikesh() {
     // statically from JSX.
     <div
       data-rishikesh-track=""
-      className="relative h-[400dvh] w-full shrink-0"
+      className="relative h-[550dvh] w-full shrink-0"
     >
       {/* The sticky frame. Exactly one viewport, and it CLIPS — that clip is
           what makes the rail work: the row inside is wider than the screen,
@@ -241,6 +247,16 @@ export default function Rishikesh() {
               mid-scroll would decode its photos while the rail is already
               moving, which is exactly when a hitch is most visible. */}
           <RishikeshRiver />
+
+          {/* ── Panel 3 — "Rishikesh 3" (Figma node 804:45) ───────────────
+              Same deal, two viewports off to the right. Appending it here is
+              most of the work of adding a panel — the sequence emits one
+              slide tween per gap between [data-rishikesh-panel] elements and
+              reads its travel from their offsetLeft, so no distance is
+              hardcoded anywhere. The ONE thing that does not follow
+              automatically is the track height above; see the note there and
+              in rishikeshHorizontal.config.ts. */}
+          <RishikeshRemember />
         </div>
       </section>
     </div>

@@ -27,8 +27,8 @@
 // column, where flex items shrink.
 //
 // v2 (current) drops GSAP pinning entirely. Rishikesh.tsx now wraps the
-// section in a 250dvh "track" and makes the section `sticky top-0`, so the
-// section holds still for 150dvh of scrolling purely in CSS. The scroll
+// section in a tall "track" and makes the section `sticky top-0`, so the
+// section holds still for the track's extra height purely in CSS. The scroll
 // room exists in the DOM before any JS runs, can't be collapsed by a flex
 // parent, and needs no document-height mutation for Lenis to re-measure.
 // This ScrollTrigger now only READS that range — it no longer creates it.
@@ -44,11 +44,16 @@ export const RISHIKESH_SCROLL_SEQUENCE_CONFIG = {
   // the section stops sticking and normal scrolling resumes.
   //
   // Between those two points the section is visually frozen, and the scroll
-  // distance is exactly the track's extra height (250dvh − 100dvh = 150dvh
-  // of sequence room). To make the sequence longer or shorter, change the
-  // track's h-[250dvh] in Rishikesh.tsx — these two strings don't need to
-  // change, since they're expressed as the track's own edges rather than as
-  // a fixed pixel or percentage distance.
+  // distance is exactly the track's extra height — currently h-[550dvh] −
+  // 100dvh = 450dvh of sequence room, which is 150dvh for panel 1's own
+  // beats plus 150dvh for each of the rail's two slides. To make the
+  // sequence longer or shorter, change that height in Rishikesh.tsx; these
+  // two strings don't need to change, since they're expressed as the track's
+  // own edges rather than as a fixed pixel or percentage distance.
+  //
+  // Do NOT change it casually, though — the track height and the shared
+  // timeline's length are locked together, and panel 1's beats are tuned
+  // against the current ratio. See lib/rishikeshHorizontal.config.ts.
   start: "top top",
   end: "bottom bottom",
 

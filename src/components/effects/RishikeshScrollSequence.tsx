@@ -73,13 +73,28 @@ export default function RishikeshScrollSequence() {
     );
     if (!rail || !line || !bg || dots.length === 0) return;
 
-    // How far the rail has to travel: enough that its LAST panel ends flush
-    // with the right edge of the sticky frame. Read from the DOM rather than
-    // hardcoded to a panel count, so appending a panel needs no arithmetic
-    // here — see rishikeshHorizontal.config.ts. Passed to GSAP as a function
-    // so it's re-read on every ScrollTrigger refresh (paired with
-    // invalidateOnRefresh below) instead of being frozen at the width the
-    // window happened to have on mount.
+    // Every panel on the rail, in document order. The rail emits ONE slide
+    // tween per gap between panels (see rishikeshHorizontal.config.ts for why
+    // it is no longer a single tween across the whole width), so this list is
+    // what the slide loop below is built from — appending a panel in
+    // Rishikesh.tsx adds a slide here with no arithmetic.
+    const panels = Array.from(
+      rail.querySelectorAll<HTMLElement>("[data-rishikesh-panel]"),
+    );
+
+    // Where the rail has to sit for panel `index` to be aligned to the left
+    // edge of the frame. Measured off the panel's own offsetLeft rather than
+    // computed as `-index * window.innerWidth`, so a future panel that isn't
+    // exactly one viewport wide still lands correctly instead of leaving the
+    // rail progressively out of register.
+    //
+    // Every one of these is passed to GSAP as a FUNCTION so it's re-read on
+    // each ScrollTrigger refresh (paired with invalidateOnRefresh below)
+    // rather than frozen at the width the window happened to have on mount.
+    const railOffset = (index: number) => () => -panels[index].offsetLeft;
+
+    // Total travel, for the reduced-motion branch only: far enough that the
+    // LAST panel ends flush with the right edge of the frame.
     const railDistance = () => -(rail.scrollWidth - window.innerWidth);
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -188,23 +203,38 @@ export default function RishikeshScrollSequence() {
       RISHIKESH_DOTS_REVEAL_CONFIG.position,
     );
 
-    // Travel beat — the rail slides sideways, carrying the finished panel 1
-    // out of the frame and the next panel in. Starts strictly after the dots
-    // have all landed AND after a hold (see the `position` note in
-    // rishikeshHorizontal.config.ts), so panel 1 is seen complete and at rest
-    // before it leaves. Nothing else on the timeline is moving at this point:
-    // the whole panel travels as one object, which is what makes the move read
-    // as the camera panning rather than as the page rebuilding itself.
-    tl.fromTo(
-      rail,
-      { x: 0 },
-      {
-        x: railDistance,
-        duration: RISHIKESH_HORIZONTAL_CONFIG.duration,
-        ease: RISHIKESH_HORIZONTAL_CONFIG.ease,
-      },
-      RISHIKESH_HORIZONTAL_CONFIG.position,
-    );
+    // Travel beats — one per panel change. The rail slides sideways, carrying
+    // the finished panel out of the frame and the next one in, then STOPS: the
+    // hold between slides is what makes each arrival a beat of its own rather
+    // than one continuous two-viewport pan, and it's what gives each panel's
+    // heading dissolve somewhere to finish before anything else moves.
+    //
+    // The first slide starts strictly after the dots have all landed AND after
+    // a hold (see the `position` note in rishikeshHorizontal.config.ts), so
+    // panel 1 is seen complete and at rest before it leaves. Nothing else on
+    // the timeline is moving during any of these: the whole panel travels as
+    // one object, which is what makes the move read as the camera panning
+    // rather than as the page rebuilding itself.
+    //
+    // `fromTo` rather than `to` on each leg, with the FROM pinned to the
+    // previous panel's resting offset, so every slide states both of its
+    // endpoints absolutely. A chain of relative `to` tweens would accumulate
+    // whatever x the rail happened to hold when a refresh interrupted it.
+    for (let index = 1; index < panels.length; index += 1) {
+      tl.fromTo(
+        rail,
+        { x: railOffset(index - 1) },
+        {
+          x: railOffset(index),
+          duration: RISHIKESH_HORIZONTAL_CONFIG.duration,
+          ease: RISHIKESH_HORIZONTAL_CONFIG.ease,
+        },
+        RISHIKESH_HORIZONTAL_CONFIG.position +
+          (index - 1) *
+            (RISHIKESH_HORIZONTAL_CONFIG.duration +
+              RISHIKESH_HORIZONTAL_CONFIG.hold),
+      );
+    }
 
     return () => {
       tl.scrollTrigger?.kill();
